@@ -1,5 +1,27 @@
 ﻿  pch.cpp
   FaceSwap.cpp
-  Source1.cpp
-  Generating Code...
+c:\users\gauthier\source\repos\faceswap\faceswap\faceswap.cpp(62): warning C4267: '=': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+c:\users\gauthier\source\repos\faceswap\faceswap\faceswap.cpp(86): warning C4244: 'argument': conversion from '_Tp' to '_Tp', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+          and
+          [
+              _Tp=int
+          ]
+c:\users\gauthier\source\repos\faceswap\faceswap\faceswap.cpp(168): warning C4244: 'argument': conversion from '_Tp' to '_Tp', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+          and
+          [
+              _Tp=int
+          ]
+c:\users\gauthier\source\repos\faceswap\faceswap\faceswap.cpp(173): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   FaceSwap.vcxproj -> C:\Users\gauthier\source\repos\FaceSwap\x64\Debug\FaceSwap.exe
