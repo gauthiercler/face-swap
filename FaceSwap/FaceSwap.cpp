@@ -60,9 +60,7 @@ void FaceSwap::applyDelaunayTriangulation()
 	std::vector<int> ind(3);
 
 	for (auto &&point : _secondImage.hull)
-	{
 		subdivision.insert(point);
-	}
 	subdivision.getTriangleList(triangleBatch);
 	for (auto &&triangle : triangleBatch)
 	{
@@ -100,37 +98,30 @@ void FaceSwap::getTrianglePoints()
 
 void FaceSwap::warpTriangle()
 {
-	cv::Rect r1 = cv::boundingRect(_firstImage.triangles);
-	cv::Rect r2 = cv::boundingRect(_secondImage.triangles);
-
-	// Offset points by left top corner of the respective rectangles
-	std::vector<cv::Point2f> t1Rect, t2Rect;
+	cv::Rect r1;
+	cv::Rect r2;
+	std::vector<cv::Point2f> t1Rect;
+	std::vector<cv::Point2f> t2Rect;
 	std::vector<cv::Point> t2RectInt;
-	std::cout << _firstImage.triangles.size() << std::endl;
+	cv::Mat img1Rect;
+	cv::Mat img2Rect;
+	cv::Mat mask;
+	cv::Mat warpMat;
+
+	r1 = cv::boundingRect(_firstImage.triangles);
+	r2 = cv::boundingRect(_secondImage.triangles);
 	for (int i = 0; i < 3; i++)
 	{
 		t1Rect.push_back(cv::Point2f(_firstImage.triangles.at(i).x - r1.x, _firstImage.triangles.at(i).y - r1.y));
 		t2Rect.push_back(cv::Point2f(_secondImage.triangles.at(i).x - r2.x, _secondImage.triangles.at(i).y - r2.y));
-		t2RectInt.push_back(cv::Point(_secondImage.triangles.at(i).x - r2.x, _secondImage.triangles.at(i).y - r2.y)); // for fillConvexPoly
+		t2RectInt.push_back(cv::Point(_secondImage.triangles.at(i).x - r2.x, _secondImage.triangles.at(i).y - r2.y));
 	}
-
-	// Get mask by filling triangle
-	cv::Mat mask = cv::Mat::zeros(r2.height, r2.width, CV_32FC3);
+	mask = cv::Mat::zeros(r2.height, r2.width, CV_32FC3);
 	fillConvexPoly(mask, t2RectInt, cv::Scalar(1.0, 1.0, 1.0), 16, 0);
-
-	// Apply warpImage to small rectangular patches
-	cv::Mat img1Rect;
 	_firstImage.getImage()(r1).copyTo(img1Rect);
-
-	cv::Mat img2Rect = cv::Mat::zeros(r2.height, r2.width, img1Rect.type());
-
-	// Given a pair of triangles, find the affine transform.
-	cv:: Mat warpMat = cv::getAffineTransform(t1Rect, t2Rect);
-
-	// Apply the Affine Transform just found to the src image
+	img2Rect = cv::Mat::zeros(r2.height, r2.width, img1Rect.type());
+	warpMat = cv::getAffineTransform(t1Rect, t2Rect);
 	cv::warpAffine(img1Rect, img2Rect, warpMat, img2Rect.size(), cv::InterpolationFlags::INTER_LINEAR, cv::BorderTypes::BORDER_REFLECT_101);
-
-
 	cv::multiply(img2Rect, mask, img2Rect);
 	cv::multiply(_firstImage.getWarpedImage()(r2), cv::Scalar(1.0, 1.0, 1.0) - mask, _firstImage.getWarpedImage()(r2));
 	_firstImage.getWarpedImage()(r2) = _firstImage.getWarpedImage()(r2) + img2Rect;
@@ -142,13 +133,10 @@ void FaceSwap::calculateMask()
 
 	for (auto &&point : _secondImage.hull)
 		hull8U.push_back(cv::Point(point.x, point.y));
-
 	cv::Mat mask = cv::Mat::zeros(_secondImage.getImage().rows, _secondImage.getImage().cols, _secondImage.getImage().depth());
 	fillConvexPoly(mask, &hull8U[0], hull8U.size(), cv::Scalar(255, 255, 255));
-
 	cv::Rect r = cv::boundingRect(_secondImage.hull);
 	cv::Point center = (r.tl() + r.br()) / 2;
-
 	_firstImage.getWarpedImage().convertTo(_firstImage.getWarpedImage(), CV_8UC3);
 	cv::seamlessClone(_firstImage.getWarpedImage(), _secondImage.getImage(), mask, center, _output, cv::NORMAL_CLONE);
 }
