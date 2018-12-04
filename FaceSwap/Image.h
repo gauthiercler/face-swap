@@ -15,6 +15,7 @@ public:
 	std::vector<cv::Point2f> points;
 	std::vector<cv::Point2f> hull;
 	std::vector<cv::Point2f> triangles;
+	cv::Rect boundingRectangle;
 	cv::Mat _warped;
 
 private:

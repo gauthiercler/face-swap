@@ -15,6 +15,7 @@ FaceDetector::~FaceDetector()
 
 void FaceDetector::loadPredictor(const std::string & path)
 {
+	std::cout << "Loading predictor " << path << std::endl;
 	dlib::deserialize(path) >> _shapePredictor;
 }
 
@@ -25,6 +26,7 @@ std::vector<cv::Point2f> FaceDetector::getPoints(const std::string &imagePath)
 	std::vector<dlib::rectangle> dets;
 	dlib::full_object_detection shape;
 
+	std::cout << "Assessing input image " << imagePath << std::endl;
 	dlib::load_image(image, imagePath);
 	dets = _detector(image);
 	if (dets.size() == 0) {
@@ -35,7 +37,7 @@ std::vector<cv::Point2f> FaceDetector::getPoints(const std::string &imagePath)
 		std::cout << dets.size() << " faces detected, processing first found" << std::endl;
 
 	shape = _shapePredictor(image, dets[0]);
-	std:: cout << "number of parts: " << shape.num_parts() << std::endl;
+	std:: cout << "number of parts found: " << shape.num_parts() << std::endl;
 	for (unsigned int idx = 0; idx < shape.num_parts(); ++idx) {
 		dlib::point point = shape.part(idx);
 		points.push_back(cv::Point2f(point.x(), point.y()));

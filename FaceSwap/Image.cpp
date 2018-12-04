@@ -12,6 +12,7 @@ Image::~Image()
 void Image::load(const std::string &path)
 {
 	_path = path;
+	std::cout << "Loading " << _path << std::endl;
 	_image = cv::imread(_path);
 }
 
