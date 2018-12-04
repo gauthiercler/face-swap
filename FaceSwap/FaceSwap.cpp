@@ -105,11 +105,6 @@ void FaceSwap::getTrianglePoints()
 
 void FaceSwap::warpTriangle()
 {
-	std::vector<cv::Point2f> t1Rect;
-	std::vector<cv::Point2f> t2Rect;
-	std::vector<cv::Point> t2RectInt;
-	cv::Mat img1Rect;
-	cv::Mat img2Rect;
 	cv::Mat mask;
 	cv::Mat warpMat;
 
@@ -117,19 +112,21 @@ void FaceSwap::warpTriangle()
 	_secondImage.boundingRectangle = cv::boundingRect(_secondImage.triangles);
 	for (int i = 0; i < 3; i++)
 	{
-		t1Rect.push_back(cv::Point2f(_firstImage.triangles.at(i).x - _firstImage.boundingRectangle.x, _firstImage.triangles.at(i).y - _firstImage.boundingRectangle.y));
-		t2Rect.push_back(cv::Point2f(_secondImage.triangles.at(i).x - _secondImage.boundingRectangle.x, _secondImage.triangles.at(i).y - _secondImage.boundingRectangle.y));
-		t2RectInt.push_back(cv::Point(_secondImage.triangles.at(i).x - _secondImage.boundingRectangle.x, _secondImage.triangles.at(i).y - _secondImage.boundingRectangle.y));
+		_firstImage.trianglesOffset.push_back(cv::Point2f(_firstImage.triangles.at(i).x - _firstImage.boundingRectangle.x, _firstImage.triangles.at(i).y - _firstImage.boundingRectangle.y));
+		_secondImage.trianglesOffset.push_back(cv::Point2f(_secondImage.triangles.at(i).x - _secondImage.boundingRectangle.x, _secondImage.triangles.at(i).y - _secondImage.boundingRectangle.y));
 	}
+
 	mask = cv::Mat::zeros(_secondImage.boundingRectangle.height, _secondImage.boundingRectangle.width, CV_32FC3);
-	fillConvexPoly(mask, t2RectInt, cv::Scalar(1.0, 1.0, 1.0), 16, 0);
-	_firstImage.getImage()(_firstImage.boundingRectangle).copyTo(img1Rect);
-	img2Rect = cv::Mat::zeros(_secondImage.boundingRectangle.height, _secondImage.boundingRectangle.width, img1Rect.type());
-	warpMat = cv::getAffineTransform(t1Rect, t2Rect);
-	cv::warpAffine(img1Rect, img2Rect, warpMat, img2Rect.size(), cv::InterpolationFlags::INTER_LINEAR, cv::BorderTypes::BORDER_REFLECT_101);
-	cv::multiply(img2Rect, mask, img2Rect);
+	fillConvexPoly(mask, std::vector<cv::Point>(_secondImage.trianglesOffset.begin(), _secondImage.trianglesOffset.end()), cv::Scalar(1.0, 1.0, 1.0), 16, 0);
+	_firstImage.getImage()(_firstImage.boundingRectangle).copyTo(_firstImage.patch);
+	_secondImage.patch = cv::Mat::zeros(_secondImage.boundingRectangle.height, _secondImage.boundingRectangle.width, _firstImage.patch.type());
+	warpMat = cv::getAffineTransform(_firstImage.trianglesOffset, _secondImage.trianglesOffset);
+	cv::warpAffine(_firstImage.patch, _secondImage.patch, warpMat, _secondImage.patch.size(), cv::InterpolationFlags::INTER_LINEAR, cv::BorderTypes::BORDER_REFLECT_101);
+	cv::multiply(_secondImage.patch, mask, _secondImage.patch);
 	cv::multiply(_firstImage.getWarpedImage()(_secondImage.boundingRectangle), cv::Scalar(1.0, 1.0, 1.0) - mask, _firstImage.getWarpedImage()(_secondImage.boundingRectangle));
-	_firstImage.getWarpedImage()(_secondImage.boundingRectangle) = _firstImage.getWarpedImage()(_secondImage.boundingRectangle) + img2Rect;
+	_firstImage.getWarpedImage()(_secondImage.boundingRectangle) = _firstImage.getWarpedImage()(_secondImage.boundingRectangle) + _secondImage.patch;
+	_firstImage.trianglesOffset.clear();
+	_secondImage.trianglesOffset.clear();
 }
 
 void FaceSwap::calculateMask()
