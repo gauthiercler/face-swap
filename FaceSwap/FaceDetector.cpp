@@ -30,8 +30,8 @@ std::vector<cv::Point2f> FaceDetector::getPoints(const std::string &imagePath)
 	dlib::load_image(image, imagePath);
 	dets = _detector(image);
 	if (dets.size() == 0) {
-		std::cout << "No face found" << std::endl;
-		return points;
+		std::cerr << "No face found, aborting" << std::endl;
+		exit(1);
 	}
 	if (dets.size() > 1)
 		std::cout << dets.size() << " faces detected, processing first found" << std::endl;
