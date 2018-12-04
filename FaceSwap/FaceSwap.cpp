@@ -18,7 +18,7 @@ void FaceSwap::load(const std::string &firstImagePath,
 	_firstImage.load(firstImagePath);
 	_secondImage.load(secondImagePath);
 	_firstImage._warped = _secondImage.getImage().clone();
-	_faceDetector.loadPredictor("shape_predictor_68_face_landmarks.dat");
+	_faceDetector.loadPredictor("shape_predictor.dat");
 	std::cout << "Loading complete" << std::endl;
 }
 
